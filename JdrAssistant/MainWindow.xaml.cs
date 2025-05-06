@@ -2,6 +2,7 @@
 using Microsoft.Web.WebView2.WinForms;
 using Microsoft.Web.WebView2.Wpf;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 
 namespace JdrAssistant
@@ -11,6 +12,7 @@ namespace JdrAssistant
         public MainWindow()
         {
             InitializeComponent();
+            Database.Init();
             InitAsync();
         }
 
@@ -24,6 +26,34 @@ namespace JdrAssistant
 
             await webView.EnsureCoreWebView2Async();
             webView.Source = new Uri(webViewPath);
+
+            webView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
+        }
+
+        private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            var message = JsonSerializer.Deserialize<Dictionary<string, string>>(e.WebMessageAsJson);
+
+            if (message == null) return;
+
+            switch (message["action"])
+            {
+                case "addCampaign":
+                    string name = message["name"];
+                    string id = Guid.NewGuid().ToString();
+                    Database.AddCampaign(id, name);
+
+                    // Retourner le nouveau
+                    var campaignObj = new { type = "campaignAdded", id, name };
+                    webView.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(campaignObj));
+                    break;
+
+                case "getCampaigns":
+                    var campaigns = Database.GetCampaigns();
+                    var response = new { type = "campaignList", campaigns };
+                    webView.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(response));
+                    break;
+            }
         }
     }
 }
