@@ -9,6 +9,7 @@ export default function CampaignManager() {
   const [name, setName] = useState('');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
+  // Actions bridge front <-> back
   useEffect(() => {
     window.chrome.webview?.postMessage({ action: 'getCampaigns' });
 
