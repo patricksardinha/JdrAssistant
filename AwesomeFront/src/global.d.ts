@@ -5,8 +5,14 @@ declare global {
     chrome: {
       webview: {
         postMessage: (data: unknown) => void;
-        addEventListener: (type: string, listener: (event: unknown) => void) => void;
-        removeEventListener: (type: string, listener: (event: unknown) => void) => void;
+        addEventListener: (
+          type: 'message',
+          listener: (event: MessageEvent) => void
+        ) => void;
+        removeEventListener: (
+          type: 'message',
+          listener: (event: MessageEvent) => void
+        ) => void;
       };
     };
   }
